@@ -12,7 +12,7 @@ categories = ["encoding", "no-std"]
 [dependencies]
 
 [[bin]]
-name = "b256"
+name = "base256"
 required-features = ["std"]
 
 [features]
