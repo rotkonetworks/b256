@@ -1,0 +1,20 @@
+[package]
+name = "b256"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rotko Networks <hq@rotko.net>"]
+description = "Dense byte to unicode character encoding"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rotkonetworks/b256"
+keywords = ["encoding", "base256", "unicode", "no-std"]
+categories = ["encoding", "no-std"]
+
+[dependencies]
+
+[[bin]]
+name = "b256"
+required-features = ["std"]
+
+[features]
+default = ["std"]
+std = []
