@@ -4,11 +4,11 @@ Dense byte-to-unicode encoding. 32 bytes → 32 characters.
 
 ```rust
 // Before: Debug output for [u8; 32]
-[171, 205, 239, 18, 34, 56, 78, 90, 123, 145, 167, 189, 201, 223, 234, 245,
- 12, 34, 56, 78, 90, 112, 134, 156, 178, 190, 212, 234, 245, 250, 251, 252]
+[58, 216, 165, 65, 124, 141, 110, 247, 71, 125, 151, 247, 52, 203, 133, 41,
+ 110, 37, 2, 225, 199, 129, 236, 58, 239, 142, 11, 154, 90, 205, 222, 11]
 
 // After: base256 encoding
-ªÌîEBVMyΣºÌÈÝéô,BVMpàΨ±Ðéôùúû
+_Гî┤gÅωυ3î·ж┤;m<ÆñûЩ;ÏÌЦXXλÎ2M÷·
 ```
 
 ## Install
@@ -30,7 +30,7 @@ Library:
 use b256::Base256;
 
 let key = [0u8; 32];
-let encoded = Base256::encode(&key);
+let encoded = Base256::encode(&key);  // !#%&()*+,-./0123456789:;<=>?@AB
 let decoded = Base256::decode(&encoded).unwrap();
 ```
 
@@ -40,7 +40,7 @@ CLI:
 head -c 32 /dev/urandom | base256
 
 # Decode stdin
-echo "ªÌîEBVMyΣºÌÈÝéô,BVMpàΨ±Ðéôùúû" | base256 -d | xxd
+echo '_Гî┤gÅωυ3î·ж┤;m<ÆñûЩ;ÏÌЦXXλÎ2M÷·' | base256 -d | xxd
 
 # SSH public key
 awk '{print $2}' ~/.ssh/id_ed25519.pub | base64 -d | tail -c32 | base256
@@ -75,3 +75,4 @@ Don't use for:
 ## License
 
 MIT OR Apache-2.0
+
