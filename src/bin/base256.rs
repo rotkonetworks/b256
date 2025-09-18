@@ -48,7 +48,7 @@ fn main() {
             print!("{}", c);
         }
         println!();
-    } else if input.len() > 0 {
+    } else if !input.is_empty() {
         eprintln!("error: expected 32 bytes, got {}", input.len());
         std::process::exit(1);
     }
