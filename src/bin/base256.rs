@@ -1,9 +1,9 @@
-use std::io::{self, Read, Write};
 use std::env;
+use std::io::{self, Read, Write};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    
+
     if args.contains(&"-h".to_string()) || args.contains(&"--help".to_string()) {
         println!("base256 - dense byte to unicode encoding");
         println!();
@@ -16,12 +16,12 @@ fn main() {
         println!("  echo 'encoded_string' | base256 -d | xxd");
         return;
     }
-    
+
     let decode_mode = args.contains(&"-d".to_string());
-    
+
     let mut input = Vec::new();
     io::stdin().read_to_end(&mut input).unwrap();
-    
+
     if decode_mode {
         // decode mode
         let s = std::str::from_utf8(&input).unwrap().trim();
