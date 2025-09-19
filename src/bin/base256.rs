@@ -4,7 +4,7 @@ use std::io::{self, Read, Write};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    
+
     if args.iter().any(|a| a == "-h" || a == "--help") {
         println!("base256 - dense byte to unicode encoding");
         println!();
@@ -28,13 +28,17 @@ fn main() {
         println!("  head -c 32 /dev/urandom | base256 -x");
         println!();
         println!("  # Convert hex to base256");
-        println!("  echo '3ad8a5417c8d6ef7477d97f734cb85296e2502e1c781ec3aef8e0b9a5acdde0b' | base256 -X");
+        println!(
+            "  echo '3ad8a5417c8d6ef7477d97f734cb85296e2502e1c781ec3aef8e0b9a5acdde0b' | base256 -X"
+        );
         println!();
         println!("  # Convert base256 to hex");
         println!("  echo '_Гî┤gÅωυ3î·ж┤;m<ÆñûЩ;ÏÌЦXXλÎ2M÷·' | base256 -dx");
         println!();
         println!("  # Convert hex to raw bytes");
-        println!("  echo '3ad8a5417c8d6ef7477d97f734cb85296e2502e1c781ec3aef8e0b9a5acdde0b' | base256 -Xd");
+        println!(
+            "  echo '3ad8a5417c8d6ef7477d97f734cb85296e2502e1c781ec3aef8e0b9a5acdde0b' | base256 -Xd"
+        );
         return;
     }
 
@@ -42,7 +46,7 @@ fn main() {
     let mut decode = false;
     let mut hex_out = false;
     let mut hex_in = false;
-    
+
     for arg in &args[1..] {
         if arg.starts_with('-') && !arg.starts_with("--") {
             for ch in arg.chars().skip(1) {
@@ -50,7 +54,7 @@ fn main() {
                     'd' => decode = true,
                     'x' => hex_out = true,
                     'X' => hex_in = true,
-                    'e' => {}, // encode is default
+                    'e' => {} // encode is default
                     _ => {}
                 }
             }
@@ -64,22 +68,22 @@ fn main() {
             // default
         }
     }
-    
+
     let mut input = Vec::new();
     io::stdin().read_to_end(&mut input).unwrap();
-    
+
     // handle empty input
     if input.is_empty() {
         return;
     }
-    
+
     // trim newline if present
     let trimmed = if input.ends_with(b"\n") {
         &input[..input.len() - 1]
     } else {
         &input[..]
     };
-    
+
     match (hex_in, decode, hex_out) {
         // hex -> b256
         (true, false, false) => {
