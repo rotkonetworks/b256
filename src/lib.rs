@@ -57,8 +57,7 @@ impl Base256 {
 
         'outer: for i in 0..32 {
             let c = input[i];
-            // Linear search is fine for 256 elements with good branch prediction
-            // Lookup table would use 128KB for marginal gains
+            // linear search is fine for 256 elements with good branch prediction
             for (j, &table_char) in Self::ENCODE_TABLE.iter().enumerate() {
                 if table_char == c {
                     output[i] = j as u8;
@@ -70,6 +69,79 @@ impl Base256 {
 
         Some(output)
     }
+
+    /// Convert b256 to hex string (64 bytes)
+    pub fn to_hex(input: &[char; 32]) -> Option<[u8; 64]> {
+        let bytes = Self::decode(input)?;
+        let mut hex = [0u8; 64];
+        const HEX_CHARS: &[u8] = b"0123456789abcdef";
+        let mut i = 0;
+        while i < 32 {
+            hex[i * 2] = HEX_CHARS[(bytes[i] >> 4) as usize];
+            hex[i * 2 + 1] = HEX_CHARS[(bytes[i] & 0x0f) as usize];
+            i += 1;
+        }
+        Some(hex)
+    }
+
+    /// Convert hex string to b256 (must be 64 bytes)
+    pub fn from_hex(hex: &[u8; 64]) -> Option<[char; 32]> {
+        let mut bytes = [0u8; 32];
+        let mut i = 0;
+        while i < 32 {
+            let hi = match hex[i * 2] {
+                b'0'..=b'9' => hex[i * 2] - b'0',
+                b'a'..=b'f' => hex[i * 2] - b'a' + 10,
+                b'A'..=b'F' => hex[i * 2] - b'A' + 10,
+                _ => return None,
+            };
+            let lo = match hex[i * 2 + 1] {
+                b'0'..=b'9' => hex[i * 2 + 1] - b'0',
+                b'a'..=b'f' => hex[i * 2 + 1] - b'a' + 10,
+                b'A'..=b'F' => hex[i * 2 + 1] - b'A' + 10,
+                _ => return None,
+            };
+            bytes[i] = (hi << 4) | lo;
+            i += 1;
+        }
+        Some(Self::encode(&bytes))
+    }
+
+    /// Encode 32 bytes directly to hex (64 bytes)
+    pub const fn bytes_to_hex(input: &[u8; 32]) -> [u8; 64] {
+        const HEX_CHARS: &[u8] = b"0123456789abcdef";
+        let mut hex = [0u8; 64];
+        let mut i = 0;
+        while i < 32 {
+            hex[i * 2] = HEX_CHARS[(input[i] >> 4) as usize];
+            hex[i * 2 + 1] = HEX_CHARS[(input[i] & 0x0f) as usize];
+            i += 1;
+        }
+        hex
+    }
+
+    /// Decode hex directly to 32 bytes
+    pub fn hex_to_bytes(hex: &[u8; 64]) -> Option<[u8; 32]> {
+        let mut bytes = [0u8; 32];
+        let mut i = 0;
+        while i < 32 {
+            let hi = match hex[i * 2] {
+                b'0'..=b'9' => hex[i * 2] - b'0',
+                b'a'..=b'f' => hex[i * 2] - b'a' + 10,
+                b'A'..=b'F' => hex[i * 2] - b'A' + 10,
+                _ => return None,
+            };
+            let lo = match hex[i * 2 + 1] {
+                b'0'..=b'9' => hex[i * 2 + 1] - b'0',
+                b'a'..=b'f' => hex[i * 2 + 1] - b'a' + 10,
+                b'A'..=b'F' => hex[i * 2 + 1] - b'A' + 10,
+                _ => return None,
+            };
+            bytes[i] = (hi << 4) | lo;
+            i += 1;
+        }
+        Some(bytes)
+    }
 }
 
 #[cfg(test)]
@@ -78,7 +150,6 @@ mod tests {
 
     #[test]
     fn table_has_256_chars() {
-        // Will fail at compile time if not 256, but explicit test for clarity
         assert_eq!(Base256::ENCODE_TABLE.len(), 256);
     }
 
@@ -103,7 +174,7 @@ mod tests {
 
     #[test]
     fn roundtrip_exhaustive() {
-        // Test every byte value in every position
+        // test every byte value in every position
         for pos in 0..32 {
             for byte in 0..=255u8 {
                 let mut input = [0u8; 32];
@@ -130,5 +201,30 @@ mod tests {
         let enc1 = Base256::encode(&input);
         let enc2 = Base256::encode(&input);
         assert_eq!(enc1, enc2);
+    }
+
+    #[test]
+    fn hex_roundtrip() {
+        let bytes = [0xDE; 32];
+        let b256 = Base256::encode(&bytes);
+        let hex = Base256::to_hex(&b256).unwrap();
+        let b256_again = Base256::from_hex(&hex).unwrap();
+        assert_eq!(b256, b256_again);
+    }
+
+    #[test]
+    fn bytes_hex_roundtrip() {
+        let bytes = [0xAB; 32];
+        let hex = Base256::bytes_to_hex(&bytes);
+        let bytes_again = Base256::hex_to_bytes(&hex).unwrap();
+        assert_eq!(bytes, bytes_again);
+    }
+
+    #[test]
+    fn invalid_hex_returns_none() {
+        let mut hex = [b'0'; 64];
+        hex[0] = b'G'; // not a hex char
+        assert!(Base256::from_hex(&hex).is_none());
+        assert!(Base256::hex_to_bytes(&hex).is_none());
     }
 }

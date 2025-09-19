@@ -1,6 +1,6 @@
 [package]
 name = "b256"
-version = "0.2.3"
+version = "0.3.0"
 edition = "2024"
 authors = ["Rotko Networks <hq@rotko.net>"]
 description = "Dense byte to unicode character encoding"
