@@ -70,6 +70,45 @@ impl Base256 {
         Some(output)
     }
 
+    /// Validate a string can be decoded to 32 bytes
+    pub fn is_valid(s: &str) -> bool {
+        let mut count = 0;
+        for c in s.chars() {
+            count += 1;
+            if count > 32 {
+                return false;
+            }
+            let mut found = false;
+            for &tc in Self::ENCODE_TABLE.iter() {
+                if tc == c {
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                return false;
+            }
+        }
+        count == 32
+    }
+
+    /// Parse from string slice to 32 bytes
+    pub fn parse(s: &str) -> Option<[u8; 32]> {
+        let mut chars = ['\0'; 32];
+        let mut i = 0;
+        for c in s.chars() {
+            if i >= 32 {
+                return None;
+            }
+            chars[i] = c;
+            i += 1;
+        }
+        if i != 32 {
+            return None;
+        }
+        Self::decode(&chars)
+    }
+
     /// Convert b256 to hex string (64 bytes)
     pub fn to_hex(input: &[char; 32]) -> Option<[u8; 64]> {
         let bytes = Self::decode(input)?;
@@ -226,5 +265,50 @@ mod tests {
         hex[0] = b'G'; // not a hex char
         assert!(Base256::from_hex(&hex).is_none());
         assert!(Base256::hex_to_bytes(&hex).is_none());
+    }
+
+    #[test]
+    fn test_is_valid() {
+        let bytes = [0x42u8; 32];
+        let encoded = Base256::encode(&bytes);
+
+        // build string manually
+        let mut s = [0u8; 96]; // worst case UTF-8 size
+        let mut pos = 0;
+        for &c in encoded.iter() {
+            let mut buf = [0; 4];
+            let bytes = c.encode_utf8(&mut buf);
+            for b in bytes.as_bytes() {
+                s[pos] = *b;
+                pos += 1;
+            }
+        }
+        let s = core::str::from_utf8(&s[..pos]).unwrap();
+
+        assert!(Base256::is_valid(s));
+        assert!(!Base256::is_valid("too short"));
+        assert!(!Base256::is_valid("################################")); // 32 invalid chars
+    }
+
+    #[test]
+    fn test_parse() {
+        let bytes = [0x42u8; 32];
+        let encoded = Base256::encode(&bytes);
+
+        // build string manually
+        let mut s = [0u8; 96];
+        let mut pos = 0;
+        for &c in encoded.iter() {
+            let mut buf = [0; 4];
+            let bytes = c.encode_utf8(&mut buf);
+            for b in bytes.as_bytes() {
+                s[pos] = *b;
+                pos += 1;
+            }
+        }
+        let s = core::str::from_utf8(&s[..pos]).unwrap();
+
+        assert_eq!(Base256::parse(s), Some(bytes));
+        assert_eq!(Base256::parse("invalid"), None);
     }
 }
